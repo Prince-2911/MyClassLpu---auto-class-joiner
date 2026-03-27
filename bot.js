@@ -19,6 +19,8 @@ class AutoClassBot {
     this.lastJoined = null;
     this.timetable = [];
     this.status = 'idle';
+    this.latestScreenshot = null;
+    this.latestScreenshotUrl = null;
   }
 
   log(message, level = 'info') {
@@ -28,6 +30,16 @@ class AutoClassBot {
     // Keep only last 100 logs
     if (this.logs.length > 100) this.logs.shift();
     console.log(`[${timestamp}] [${level.toUpperCase()}] ${message}`);
+
+    // Silently capture frame on every log activity
+    if (this.page && !this.page.isClosed()) {
+      this.page.screenshot({ encoding: 'base64', type: 'webp', quality: 50 })
+        .then(b64 => {
+          this.latestScreenshot = b64;
+          this.latestScreenshotUrl = this.page.url();
+        })
+        .catch(() => {});
+    }
   }
 
   async launchBrowser() {
@@ -427,13 +439,17 @@ class AutoClassBot {
    * Take a screenshot of the current page
    */
   async takeScreenshot() {
-    if (!this.page) return null;
-    try {
-      return await this.page.screenshot({ encoding: 'base64', type: 'png' });
-    } catch (e) {
-      this.log(`Screenshot error: ${e.message}`, 'warn');
-      return null;
+    // If the browser is open, fetch a fresh one
+    if (this.page && !this.page.isClosed()) {
+      try {
+        const b64 = await this.page.screenshot({ encoding: 'base64', type: 'webp', quality: 50 });
+        this.latestScreenshot = b64;
+        this.latestScreenshotUrl = this.page.url();
+      } catch (e) {
+        // ignore fast navigation errors
+      }
     }
+    return this.latestScreenshot;
   }
 
   /**
@@ -441,10 +457,11 @@ class AutoClassBot {
    */
   getCurrentUrl() {
     try {
-      return this.page ? this.page.url() : null;
-    } catch {
-      return null;
-    }
+      if (this.page && !this.page.isClosed()) {
+        this.latestScreenshotUrl = this.page.url();
+      }
+    } catch {}
+    return this.latestScreenshotUrl;
   }
 
   /**
@@ -457,10 +474,10 @@ class AutoClassBot {
       lastCheck: this.lastCheck,
       lastJoined: this.lastJoined,
       timetable: this.timetable,
-      logs: this.logs,  // All stored logs
+      logs: this.logs.slice(-30),  // Last 30 logs
       uptime: process.uptime(),
       currentUrl: this.getCurrentUrl(),
-      screenshotAvailable: !!(this.page)
+      screenshotAvailable: !!(this.latestScreenshot)
     };
   }
 
