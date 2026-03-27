@@ -457,7 +457,7 @@ class AutoClassBot {
       lastCheck: this.lastCheck,
       lastJoined: this.lastJoined,
       timetable: this.timetable,
-      logs: this.logs.slice(-30),  // Last 30 logs
+      logs: this.logs,  // All stored logs
       uptime: process.uptime(),
       currentUrl: this.getCurrentUrl(),
       screenshotAvailable: !!(this.page)

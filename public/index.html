@@ -86,25 +86,7 @@
 
       <!-- Right Column: Live View & Logs -->
       <div class="main-content">
-        <!-- Live Browser View -->
-        <section class="section browser-section">
-          <div class="section-header">
-            <div class="header-with-status">
-              <h2>Live Browser View</h2>
-              <span class="live-badge" id="liveBadge">● LIVE</span>
-            </div>
-            <button class="btn-small" id="refreshScreenBtn">Refresh</button>
-          </div>
-          <p class="url-bar" id="browserUrl">No active session</p>
-          <div class="browser-frame" id="browserFrame">
-            <div class="browser-placeholder" id="browserPlaceholder">
-              <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="2" y="3" width="20" height="14" rx="2" ry="2"/><line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/></svg>
-              <span>No browser session active</span>
-              <small>Click "Check Now" to wake bot</small>
-            </div>
-            <img id="browserScreenshot" src="" alt="Live browser view" style="display:none;">
-          </div>
-        </section>
+
 
         <!-- Activity Log -->
         <section class="section log-section">
@@ -129,9 +111,6 @@
     setInterval(fetchStatus, 5000);
     fetchStatus();
 
-    // Auto-refresh screenshot every 8 seconds
-    setInterval(fetchScreenshot, 8000);
-
     async function fetchStatus() {
       try {
         const res = await fetch(`${API}/api/status`);
@@ -142,35 +121,8 @@
         $('statusDot').className = 'status-dot error';
         $('statusBar').className = 'status-bar error';
       }
-    }
-
-    async function fetchScreenshot() {
-      try {
-        const res = await fetch(`${API}/api/screenshot`);
-        const data = await res.json();
-        if (data.image) {
-          $('browserScreenshot').src = `data:image/png;base64,${data.image}`;
-          $('browserScreenshot').style.display = 'block';
-          $('browserPlaceholder').style.display = 'none';
-          $('browserUrl').textContent = data.url || 'Unknown page';
-          $('liveBadge').style.display = 'inline-flex';
-        } else {
-          $('browserScreenshot').style.display = 'none';
-          $('browserPlaceholder').style.display = 'flex';
-          $('browserUrl').textContent = 'Session inactive';
-          $('liveBadge').style.display = 'none';
-        }
-      } catch {
-        $('browserScreenshot').style.display = 'none';
-        $('browserPlaceholder').style.display = 'flex';
-        $('liveBadge').style.display = 'none';
       }
     }
-
-    $('refreshScreenBtn').onclick = () => {
-      $('refreshScreenBtn').textContent = '...';
-      fetchScreenshot().then(() => $('refreshScreenBtn').textContent = 'Refresh');
-    };
 
     function updateUI(d) {
       const dot = $('statusDot');
@@ -234,9 +186,6 @@
           : '<p class="log-empty">No classes scheduled.</p>';
       }
 
-      // Auto-fetch screenshot if session is available
-      if (d.screenshotAvailable) fetchScreenshot();
-
       // Logs
       if (d.logs?.length) {
         $('logs').innerHTML = d.logs.slice().reverse().map(l =>
@@ -256,7 +205,6 @@
       $('checkNowBtn').innerHTML = 'Checking...';
       try {
         await fetch(`${API}/api/trigger`, {method:'POST'});
-        fetchScreenshot();
       } catch {}
       setTimeout(() => { $('checkNowBtn').disabled = false; $('checkNowBtn').innerHTML = originalText; fetchStatus(); }, 2000);
     };
