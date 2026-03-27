@@ -1,12 +1,16 @@
 FROM node:20-slim
 
-# Install Chromium dependencies
+# Install Chromium and timezone dependencies
 RUN apt-get update && apt-get install -y \
     chromium \
     fonts-ipafont-gothic \
     fonts-freefont-ttf \
+    tzdata \
     --no-install-recommends \
     && rm -rf /var/lib/apt/lists/*
+
+# Set Timezone to IST
+ENV TZ="Asia/Kolkata"
 
 # Set Puppeteer to use installed Chromium
 ENV PUPPETEER_SKIP_CHROMIUM_DOWNLOAD=true

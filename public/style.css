@@ -164,10 +164,11 @@ body {
   display: flex;
   flex-direction: column;
   gap: 16px;
+  padding-right: 15px;
 }
 
 /* Browser View */
-.browser-section { padding-bottom: 0; overflow: hidden; display: flex; flex-direction: column; }
+.browser-section { padding-bottom: 18px; overflow: hidden; display: flex; flex-direction: column; }
 .live-badge {
   display: none; align-items: center; gap: 4px; font-size: 9px; font-weight: 700;
   color: #d32f2f; background: #ffebee; padding: 2px 6px; border-radius: 4px;
@@ -182,7 +183,7 @@ body {
 }
 .browser-frame {
   background: #f9f9f9; border: 1px solid #e0e0e0; border-radius: 0 0 10px 10px;
-  overflow: hidden; min-height: 280px; position: relative; margin: 0 -18px; border-left: none; border-right: none; border-bottom: none;
+  overflow: hidden; min-height: 280px; position: relative;
 }
 .browser-frame img { width: 100%; height: auto; display: block; border-radius: 0 0 10px 10px; }
 .browser-placeholder {
@@ -194,7 +195,7 @@ body {
 
 /* Logs */
 .log-section { display: flex; flex-direction: column; flex: 1; }
-.logs { max-height: 380px; overflow-y: auto; display: flex; flex-direction: column; }
+.logs { max-height: 380px; overflow-y: auto; display: flex; flex-direction: column; padding-right: 10px; }
 .log { display: flex; gap: 10px; padding: 6px 0; border-bottom: 1px solid #f5f5f5; font-size: 11px; }
 .log:last-child { border-bottom: none; }
 .log-time { color: #bbb; flex-shrink: 0; min-width: 65px; font-family: 'SF Mono', monospace; font-size: 10px; }
