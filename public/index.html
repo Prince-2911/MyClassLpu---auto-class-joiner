@@ -199,8 +199,14 @@
         $('statusText').textContent = 'Error';
         $('statusSub').textContent = d.status === 'login_failed' ? 'Invalid credentials' : 'Check logs';
       } else {
-        $('statusText').textContent = d.hasCredentials ? 'Ready' : 'Setup Required';
-        $('statusSub').textContent = d.hasCredentials ? 'Cron active' : 'Missing .env config';
+        if (d.hasCredentials) {
+          dot.classList.add('active'); bar.classList.add('active');
+          $('statusText').textContent = 'Running';
+          $('statusSub').textContent = 'Cron active';
+        } else {
+          $('statusText').textContent = 'Setup Required';
+          $('statusSub').textContent = 'Missing .env config';
+        }
       }
 
       $('lastCheck').textContent = d.lastCheck || 'Never';
