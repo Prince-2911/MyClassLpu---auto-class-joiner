@@ -121,15 +121,15 @@ function startCronJob() {
     return;
   }
 
-  // Run every 2 minutes, Monday-Saturday, 8 AM to 9 PM IST
-  cronJob = cron.schedule('*/2 8-21 * * 1-6', async () => {
+  // Run every 2 minutes, Monday-Saturday, 8 AM to 10 PM IST
+  cronJob = cron.schedule('*/2 8-22 * * 1-6', async () => {
     bot.log('⏰ Scheduled check triggered.');
     await bot.checkAndJoin(credentials.regNumber, credentials.password);
   }, {
     timezone: 'Asia/Kolkata'
   });
 
-  bot.log('Cron job started — checking every 2 min (Mon-Sat, 8AM-9PM IST).');
+  bot.log('Cron job started — checking every 2 min (Mon-Sat, 8AM-10PM IST).');
 }
 
 function stopCronJob() {

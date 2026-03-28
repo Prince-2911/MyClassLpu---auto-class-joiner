@@ -21,6 +21,7 @@ class AutoClassBot {
     this.status = 'idle';
     this.latestScreenshot = null;
     this.latestScreenshotUrl = null;
+    this.activeClassEndTime = null;
   }
 
   log(message, level = 'info') {
@@ -208,6 +209,20 @@ class AutoClassBot {
   async checkAndJoin(regNumber, password) {
     try {
       this.lastCheck = new Date().toLocaleString('en-IN', { timeZone: 'Asia/Kolkata' });
+      
+      // Skip timetable check if we are currently in an active class
+      if (this.status === 'joined' && this.activeClassEndTime) {
+        if (Date.now() < this.activeClassEndTime) {
+          this.log(`Currently in class "${this.lastJoined?.name || 'Live'}". Skipping check until scheduled end time.`);
+          await this.takeScreenshot();
+          return { joined: true, className: this.lastJoined?.name, skipped: true };
+        } else {
+          this.log('Class scheduled time has ended. Resuming checks.');
+          this.status = 'idle';
+          this.activeClassEndTime = null;
+        }
+      }
+
       this.status = 'checking';
 
       // Ensure we're logged in
@@ -263,6 +278,14 @@ class AutoClassBot {
             time: new Date().toLocaleString('en-IN', { timeZone: 'Asia/Kolkata' })
           };
           this.status = 'joined';
+          
+          // Determine end time to pause checks
+          this.activeClassEndTime = this.parseEndTime(ongoingClass.time);
+          if (!this.activeClassEndTime) {
+            // Default to 60 mins from now if time is unknown
+            this.activeClassEndTime = Date.now() + 60 * 60 * 1000;
+          }
+          
           return { joined: true, className: ongoingClass.name };
         }
       } else {
@@ -515,6 +538,44 @@ class AutoClassBot {
 
   delay(ms) {
     return new Promise(resolve => setTimeout(resolve, ms));
+  }
+
+  /**
+   * Parse the end time of a class to know when to resume checking
+   */
+  parseEndTime(timeStr) {
+    if (!timeStr) return null;
+    try {
+      const parts = timeStr.split(/[-]|to/i).map(s => s.trim());
+      if (parts.length >= 2) {
+        let endStr = parts[1];
+        const match = endStr.match(/(\d{1,2}):(\d{2})\s*(AM|PM|a\.m\.|p\.m\.)?/i);
+        if (match) {
+          let hours = parseInt(match[1], 10);
+          const minutes = parseInt(match[2], 10);
+          const ampm = match[3] ? match[3].toUpperCase().replace(/\./g, '') : null;
+          
+          if (ampm === 'PM' && hours < 12) hours += 12;
+          if (ampm === 'AM' && hours === 12) hours = 0;
+          if (!ampm && hours < 8) hours += 12;
+
+          const istStr = new Date().toLocaleString('en-US', { timeZone: 'Asia/Kolkata' });
+          const istDate = new Date(istStr);
+          istDate.setHours(hours, minutes, 0, 0);
+
+          let durationMs = istDate.getTime() - new Date(istStr).getTime();
+          if (durationMs < 0) {
+            istDate.setHours(istDate.getHours() + 12);
+            durationMs = istDate.getTime() - new Date(istStr).getTime();
+          }
+          
+          if (durationMs > 0 && durationMs < 5 * 60 * 60 * 1000) {
+            return Date.now() + durationMs;
+          }
+        }
+      }
+    } catch (e) {}
+    return null;
   }
 }
 
